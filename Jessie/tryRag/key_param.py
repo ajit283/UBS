@@ -1,0 +1,2 @@
+openai_api_key="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"
+MONGO_URI=MONGODB_ATLAS_URI="mongodb+srv://UBS:vJCSfdPUn89PFbkF@cluster0.qjheieo.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
