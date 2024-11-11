@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gaussian PDF Calculator</title>
+    <style>
+        .slider-container {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gaussian PDF Calculator</h1>
+
+    <!-- Input field for query -->
+    <div>
+        <label for="query-input">Enter Query:</label>
+        <input type="text" id="query-input" placeholder="Type your query here">
+        <button onclick="submitQuery()">Submit</button>
+    </div>
+
+    <div id="sliders">
+        <!-- Sliders will be added here by JavaScript -->
+    </div>
+
+    <!-- Display PDF values -->
+    <h2 id="pdf-output">PDF Value: </h2>
+    <h2 id="pdf-ratio-output">PDF Ratio to Mean: </h2>
+
+    <!-- JSON data for slider configuration -->
+    <script type="application/json" id="slider-data">
+        {{ slider_data | tojson }}
+    </script>
+
+    <script>
+        const sliderData = JSON.parse(document.getElementById('slider-data').textContent);
+        console.log("Parsed Slider Data:", sliderData);
+        let sliderValues = sliderData.mean ? sliderData.mean.slice() : [];
+
+        // Function to create sliders dynamically with specific min and max ranges
+        function createSliders() {
+            const slidersDiv = document.getElementById('sliders');
+            
+            if (!sliderData.columns || !sliderData.ranges) {
+                console.error("Slider data is missing or incorrectly formatted.");
+                return;
+            }
+
+            sliderData.columns.forEach((col, index) => {
+                const container = document.createElement('div');
+                container.className = 'slider-container';
+                
+                const label = document.createElement('label');
+                label.innerText = `${col}: `;
+                
+                const input = document.createElement('input');
+                input.type = 'range';
+                
+                // Set specific min and max values for each slider from sliderData.ranges
+                input.min = sliderData.ranges[col].min;
+                input.max = sliderData.ranges[col].max;
+                
+                input.step = 0.1;
+                input.value = sliderData.mean[index];
+                input.dataset.index = index;
+                
+                // Display current value next to each slider for easy reference
+                const valueDisplay = document.createElement('span');
+                valueDisplay.innerText = ` (${input.value})`;
+                valueDisplay.id = `value-${col}`;
+
+                // Update slider value and recalculate PDF on change
+                input.oninput = function() {
+                    const value = parseFloat(this.value);
+                    sliderValues[this.dataset.index] = value;
+                    document.getElementById(`value-${col}`).innerText = ` (${value})`;  // Update displayed value
+                    calculatePDF();
+                };
+                
+                container.appendChild(label);
+                container.appendChild(input);
+                container.appendChild(valueDisplay);
+                slidersDiv.appendChild(container);
+            });
+        }
+
+        // Function to handle the query submission
+        function submitQuery() {
+            const query = document.getElementById('query-input').value;
+            console.log("Submitted Query:", query);  // Log the query for debugging
+            
+            fetch('/process_query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Received weighted means:", data.weighted_means);
+
+                // Set sliders to the weighted means received from the backend
+                sliderValues = data.weighted_means;
+                sliderData.columns.forEach((col, index) => {
+                    const slider = document.querySelector(`input[data-index='${index}']`);
+                    slider.value = sliderValues[index];
+                    document.getElementById(`value-${col}`).innerText = ` (${sliderValues[index]})`;
+                });
+
+                // Recalculate PDF with new slider values
+                calculatePDF();
+            })
+            .catch(error => console.error("Error processing query:", error));
+        }
+
+        // Function to calculate PDF using AJAX
+        function calculatePDF() {
+            console.log("Slider Values:", sliderValues);  // Log the slider values
+            fetch('/calculate_pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ slider_values: sliderValues })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("PDF Value:", data.pdf_value);  // Log the PDF value
+                console.log("PDF Ratio to Mean:", data.pdf_ratio);  // Log the PDF ratio
+                
+                // Format small numbers for better readability
+                const pdfValueFormatted = formatSmallNumber(data.pdf_value);
+                const pdfRatioFormatted = formatSmallNumber(data.pdf_ratio);
+                
+                // Display the PDF value and ratio in the browser
+                document.getElementById('pdf-output').innerText = `PDF Value: ${pdfValueFormatted}`;
+                document.getElementById('pdf-ratio-output').innerText = `PDF Ratio to Mean: ${pdfRatioFormatted}`;
+            })
+            .catch(error => console.error("Error fetching PDF:", error));
+        }
+
+        // Function to format small numbers for display
+        function formatSmallNumber(value) {
+            if (value === 0) return "0";  // Display as zero if value is exactly zero
+            return value.toExponential(2); // Format small numbers in scientific notation
+        }
+
+        // Initialize sliders and calculate PDF
+        createSliders();
+        calculatePDF();
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gaussian PDF Calculator</title>
+    <style>
+        .slider-container {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gaussian PDF Calculator</h1>
+
+    <!-- Input field for query -->
+    <div>
+        <label for="query-input">Enter Query:</label>
+        <input type="text" id="query-input" placeholder="Type your query here">
+        <button onclick="submitQuery()">Submit</button>
+    </div>
+
+    <div id="sliders">
+        <!-- Sliders will be added here by JavaScript -->
+    </div>
+
+    <!-- Display PDF values -->
+    <h2 id="pdf-output">PDF Value: </h2>
+    <h2 id="pdf-ratio-output">PDF Ratio to Mean: </h2>
+
+    <!-- JSON data for slider configuration -->
+    <script type="application/json" id="slider-data">
+        {{ slider_data | tojson }}
+    </script>
+
+    <script>
+        const sliderData = JSON.parse(document.getElementById('slider-data').textContent);
+        console.log("Parsed Slider Data:", sliderData);
+        let sliderValues = sliderData.mean ? sliderData.mean.slice() : [];
+
+        // Function to create sliders dynamically with specific min and max ranges
+        function createSliders() {
+            const slidersDiv = document.getElementById('sliders');
+            
+            if (!sliderData.columns || !sliderData.ranges) {
+                console.error("Slider data is missing or incorrectly formatted.");
+                return;
+            }
+
+            sliderData.columns.forEach((col, index) => {
+                const container = document.createElement('div');
+                container.className = 'slider-container';
+                
+                const label = document.createElement('label');
+                label.innerText = `${col}: `;
+                
+                const input = document.createElement('input');
+                input.type = 'range';
+                
+                // Set specific min and max values for each slider from sliderData.ranges
+                input.min = sliderData.ranges[col].min;
+                input.max = sliderData.ranges[col].max;
+                
+                input.step = 0.1;
+                input.value = sliderData.mean[index];
+                input.dataset.index = index;
+                
+                // Display current value next to each slider for easy reference
+                const valueDisplay = document.createElement('span');
+                valueDisplay.innerText = ` (${input.value})`;
+                valueDisplay.id = `value-${col}`;
+
+                // Update slider value and recalculate PDF on change
+                input.oninput = function() {
+                    const value = parseFloat(this.value);
+                    sliderValues[this.dataset.index] = value;
+                    document.getElementById(`value-${col}`).innerText = ` (${value})`;  // Update displayed value
+                    calculatePDF();
+                };
+                
+                container.appendChild(label);
+                container.appendChild(input);
+                container.appendChild(valueDisplay);
+                slidersDiv.appendChild(container);
+            });
+        }
+
+        // Function to handle the query submission
+        function submitQuery() {
+            const query = document.getElementById('query-input').value;
+            console.log("Submitted Query:", query);  // Log the query for debugging
+            
+            fetch('/process_query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Received weighted means:", data.weighted_means);
+
+                // Set sliders to the weighted means received from the backend
+                sliderValues = data.weighted_means;
+                sliderData.columns.forEach((col, index) => {
+                    const slider = document.querySelector(`input[data-index='${index}']`);
+                    slider.value = sliderValues[index];
+                    document.getElementById(`value-${col}`).innerText = ` (${sliderValues[index]})`;
+                });
+
+                // Recalculate PDF with new slider values
+                calculatePDF();
+            })
+            .catch(error => console.error("Error processing query:", error));
+        }
+
+        // Function to calculate PDF using AJAX
+        function calculatePDF() {
+            console.log("Slider Values:", sliderValues);  // Log the slider values
+            fetch('/calculate_pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ slider_values: sliderValues })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("PDF Value:", data.pdf_value);  // Log the PDF value
+                console.log("PDF Ratio to Mean:", data.pdf_ratio);  // Log the PDF ratio
+                
+                // Format small numbers for better readability
+                const pdfValueFormatted = formatSmallNumber(data.pdf_value);
+                const pdfRatioFormatted = formatSmallNumber(data.pdf_ratio);
+                
+                // Display the PDF value and ratio in the browser
+                document.getElementById('pdf-output').innerText = `PDF Value: ${pdfValueFormatted}`;
+                document.getElementById('pdf-ratio-output').innerText = `PDF Ratio to Mean: ${pdfRatioFormatted}`;
+            })
+            .catch(error => console.error("Error fetching PDF:", error));
+        }
+
+        // Function to format small numbers for display
+        function formatSmallNumber(value) {
+            if (value === 0) return "0";  // Display as zero if value is exactly zero
+            return value.toExponential(2); // Format small numbers in scientific notation
+        }
+
+        // Initialize sliders and calculate PDF
+        createSliders();
+        calculatePDF();
+    </script>
+</body>
+</html>
