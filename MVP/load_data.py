@@ -1,39 +1,29 @@
 import pandas as pd
-from pymongo import MongoClient
-from langchain.embeddings.openai import OpenAIEmbeddings
-import key_param as key_param
+from weaviate.classes.config import Configure, Property, DataType
+import chromadb
 
-# Load CSV data using pandas
-csv_file = 'events_with_economic_data.csv'  # Replace with the actual path to your CSV file
-df = pd.read_csv(csv_file)
 
-# Print the first few rows of the DataFrame (for debugging)
-print(df.head())
+def load_data():
 
-# Connect to MongoDB Atlas
-client = MongoClient(key_param.MONGO_URI)
-dbName = "events"
-collectionName = "data_and_embeddings"
-collection = client[dbName][collectionName]
+    client = chromadb.PersistentClient()
 
-# Initialize the OpenAI embeddings model
-embeddings_model = OpenAIEmbeddings(openai_api_key=key_param.openai_api_key)
+    collection = client.get_or_create_collection("events")
 
-# Store full documents and embeddings together in MongoDB
-for _, row in df.iterrows():
-    # Convert each row to a dictionary
-    document_dict = row.to_dict()
+    # Load CSV data using pandas
+    csv_file = "data/events_with_economic_data.csv"  # Replace with the actual path to your CSV file
+    df = pd.read_csv(csv_file)
 
-    # Extract the text to embed from the 'description' column
-    text_to_embed = document_dict.get('description', '')  # Extract the 'description' field
-    
-    # Create embeddings for the text
-    embedding_vector = embeddings_model.embed_query(text_to_embed)
-    
-    # Add the embedding vector to the document
-    document_dict['embedding'] = embedding_vector
+    # Print the first few rows of the DataFrame (for debugging)
+    print(df.head())
 
-    # Insert the document (with embeddings) into MongoDB
-    collection.insert_one(document_dict)
+    if collection.count() == 0:
 
-# Now, each document in MongoDB will contain both the full data and its corresponding embedding.
+        collection.add(
+            documents=[row.description for _, row in df.iterrows()],
+            metadatas=[
+                row.to_dict() for _, row in df.iterrows()
+            ],  # filter on arbitrary metadata!
+            ids=[str(id) for id in range(len(df))],  # must be unique for each doc
+        )
+
+    return client, collection
