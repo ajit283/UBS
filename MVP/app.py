@@ -43,6 +43,22 @@ def add_cors_headers(response):
     return response
 
 
+def get_likelyhood(pdf_ratio):
+    magnitude = -int(np.floor(np.log10(pdf_ratio)))
+
+    # Define categories based on magnitude
+    if magnitude >= 200:
+        return "Extremely Unlikely"
+    elif magnitude >= 50:
+        return "Very Unlikely"
+    elif magnitude >= 20:
+        return "Unlikely"
+    elif magnitude >= 10:
+        return "Neutral"
+    else:
+        return "Likely"
+
+
 @app.route("/calculate_pdf", methods=["POST", "OPTIONS"])
 def calculate_pdf():
     if request.method == "OPTIONS":
@@ -59,7 +75,12 @@ def calculate_pdf():
     print("Calculated PDF value:", pdf_value)
     print("PDF Ratio to Mean:", pdf_ratio)
 
-    response = make_response(jsonify({"pdf_ratio": pdf_ratio, "pdf_value": pdf_value}))
+    likelyhood = get_likelyhood(pdf_ratio)
+    response = make_response(
+        jsonify(
+            {"pdf_ratio": pdf_ratio, "pdf_value": pdf_value, "likelyhood": likelyhood}
+        )
+    )
     return add_cors_headers(response)
 
 
@@ -94,11 +115,14 @@ def process_query():
     print("Calculated PDF value:", pdf_value)
     print("PDF Ratio to Mean:", pdf_ratio)
 
+    likelyhood = get_likelyhood(pdf_ratio)
+
     response = make_response(
         jsonify(
             {
                 "pdf_ratio": pdf_ratio,
                 "pdf_value": pdf_value,
+                "likelyhood": likelyhood,
                 **weighted_means,
             }
         )
