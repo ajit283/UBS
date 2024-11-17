@@ -19,17 +19,13 @@ mean_pdf = gaussian.pdf(mean)
 app = Flask(__name__)
 
 # Configure CORS
-CORS(
-    app,
-    resources={
-        r"/*": {
-            "origins": "*",
-            "methods": ["GET", "POST", "OPTIONS"],
-            "allow_headers": ["Content-Type", "Authorization"],
-            "supports_credentials": True,
-        }
-    },
-)
+CORS(app, resources={
+    r"/*": {
+        "origins": "http://localhost:3000",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 
 # Load MongoDB client and collection
 client, collection = load_data()
@@ -43,7 +39,8 @@ def add_cors_headers(response):
     return response
 
 
-def get_likelyhood(pdf_ratio):
+# the bigger this magnitude number the more unlikely it is
+def get_likelihood(pdf_ratio):
     magnitude = -int(np.floor(np.log10(pdf_ratio)))
 
     # Define categories based on magnitude
@@ -62,12 +59,12 @@ def get_likelyhood(pdf_ratio):
 @app.route("/calculate_pdf", methods=["POST", "OPTIONS"])
 def calculate_pdf():
     if request.method == "OPTIONS":
-        response = make_response()
-        return add_cors_headers(response)
+        return "", 204
 
-    slider_values = request.json["slider_values"]
-    vector = np.array(slider_values, dtype=float)
-    print("Received vector from sliders:\n", vector)
+    # Extract economic parameters from the request
+    economic_params = request.json["economic_params"]
+    vector = np.array(list(economic_params.values()), dtype=float)
+    print("Received economic parameters:\n", vector)
 
     pdf_value = gaussian.pdf(vector)
     pdf_ratio = pdf_value / mean_pdf if mean_pdf != 0 else 0
@@ -75,20 +72,18 @@ def calculate_pdf():
     print("Calculated PDF value:", pdf_value)
     print("PDF Ratio to Mean:", pdf_ratio)
 
-    likelyhood = get_likelyhood(pdf_ratio)
-    response = make_response(
-        jsonify(
-            {"pdf_ratio": pdf_ratio, "pdf_value": pdf_value, "likelyhood": likelyhood}
-        )
-    )
-    return add_cors_headers(response)
+    likelihood = get_likelihood(pdf_ratio)
+    return jsonify({
+        "pdf_ratio": pdf_ratio,
+        "pdf_value": pdf_value,
+        "likelihood": likelihood
+    })
 
 
 @app.route("/process_query", methods=["POST", "OPTIONS"])
 def process_query():
     if request.method == "OPTIONS":
-        response = make_response()
-        return add_cors_headers(response)
+        return "", 204
 
     # try:
     data = request.json
@@ -115,29 +110,19 @@ def process_query():
     print("Calculated PDF value:", pdf_value)
     print("PDF Ratio to Mean:", pdf_ratio)
 
-    likelyhood = get_likelyhood(pdf_ratio)
+    likelihood = get_likelihood(pdf_ratio)
 
-    response = make_response(
-        jsonify(
-            {
-                "pdf_ratio": pdf_ratio,
-                "pdf_value": pdf_value,
-                "likelyhood": likelyhood,
-                **weighted_means,
-            }
-        )
-    )
-    return add_cors_headers(response)
-
-    # except Exception as e:
-    #     error_response = make_response(jsonify({"error": str(e)}), 500)
-    #     return add_cors_headers(error_response)
+    return jsonify({
+        "pdf_ratio": pdf_ratio,
+        "pdf_value": pdf_value,
+        "likelihood": likelihood,
+        **weighted_means,
+    })
 
 
 @app.route("/health", methods=["GET"])
 def health_check():
-    response = make_response(jsonify({"status": "healthy"}))
-    return add_cors_headers(response)
+    return jsonify({"status": "healthy"})
 
 
 # @app.errorhandler(Exception)

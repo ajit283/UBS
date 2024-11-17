@@ -9,6 +9,7 @@ import { TrendingUp, Loader2, BarChart3 } from "lucide-react";
 import { useChat, experimental_useObject as useObject } from "ai/react";
 import { eventSchema } from "./api/chat/route";
 import { z } from "zod";
+import { LikelihoodIndicator } from "@/components/ui/likelihood-indicator";
 
 type Parameters = {
   pdf_ratio: number;
@@ -29,6 +30,7 @@ type Parameters = {
   weighted_mean_cpi_12m: number;
   weighted_mean_cpi_18m: number;
   weighted_mean_cpi_24m: number;
+  likelihood: string;
 };
 
 const BACKEND_URL = "http://localhost:5000/";
@@ -74,7 +76,27 @@ export default function Component() {
     });
   };
 
-  async function recalculatePDF(parameters: Parameters, scenario: number) {
+  const recalculatePDF = async (parameters: Parameters, scenarioIdx: number) => {
+    // Extract economic parameters
+    const economic_params = {
+      weighted_mean_unemployment_rate_6m: parameters.weighted_mean_unemployment_rate_6m,
+      weighted_mean_unemployment_rate_12m: parameters.weighted_mean_unemployment_rate_12m,
+      weighted_mean_unemployment_rate_18m: parameters.weighted_mean_unemployment_rate_18m,
+      weighted_mean_unemployment_rate_24m: parameters.weighted_mean_unemployment_rate_24m,
+      weighted_mean_gdp_6m: parameters.weighted_mean_gdp_6m,
+      weighted_mean_gdp_12m: parameters.weighted_mean_gdp_12m,
+      weighted_mean_gdp_18m: parameters.weighted_mean_gdp_18m,
+      weighted_mean_gdp_24m: parameters.weighted_mean_gdp_24m,
+      weighted_mean_oil_price_6m: parameters.weighted_mean_oil_price_6m,
+      weighted_mean_oil_price_12m: parameters.weighted_mean_oil_price_12m,
+      weighted_mean_oil_price_18m: parameters.weighted_mean_oil_price_18m,
+      weighted_mean_oil_price_24m: parameters.weighted_mean_oil_price_24m,
+      weighted_mean_cpi_6m: parameters.weighted_mean_cpi_6m,
+      weighted_mean_cpi_12m: parameters.weighted_mean_cpi_12m,
+      weighted_mean_cpi_18m: parameters.weighted_mean_cpi_18m,
+      weighted_mean_cpi_24m: parameters.weighted_mean_cpi_24m,
+    };
+
     const response = await fetch(BACKEND_URL + "calculate_pdf", {
       method: "POST",
       headers: {
@@ -82,23 +104,20 @@ export default function Component() {
         Accept: "application/json",
       },
       body: JSON.stringify({
-        slider_values: Object.values(
-          Object.entries(parameters)
-            .filter(([key]) => key !== "pdf_value" && key !== "pdf_ratio")
-            .map(([key, value]) => value)
-        ),
+        economic_params,
       }),
     });
 
     if (!response.ok) {
-      throw new Error("Network response was not ok");
+      console.error("Failed to calculate PDF");
+      return;
     }
 
     const data = await response.json();
     setParameterMap((prevMap) =>
-      new Map(prevMap).set(scenario, { ...parameters, ...data })
+      new Map(prevMap).set(scenarioIdx, { ...parameters, ...data })
     );
-  }
+  };
 
   const { object, submit } = useObject({
     api: "/api/chat",
@@ -365,9 +384,11 @@ export default function Component() {
                       onClick={() => setSelectedScenario(idx)}
                     >
                       <CardHeader>
-                        <CardTitle className="text-sm font-medium flex items-center">
-                          <BarChart3 className="h-4 w-4 mr-2" />
-                          {scenario?.description}
+                        <CardTitle className="text-sm font-medium">
+                          <div className="flex items-center">
+                            <BarChart3 className="h-4 w-4 mr-2" />
+                            {scenario?.description}
+                          </div>
                         </CardTitle>
                       </CardHeader>
                     </Card>
@@ -384,10 +405,40 @@ export default function Component() {
                   <div className="space-y-6">
                     {parameterMap.has(selectedScenario) ? (
                       <div>
-                        <h3 className="text-lg font-semibold mb-3">
-                          {parameterMap.get(selectedScenario)!.pdf_value}
-                        </h3>
-
+                        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-600">
+                                  PDF Value:
+                                </span>
+                                <span className="text-lg font-semibold text-primary">
+                                  {parseFloat(
+                                    parameterMap.get(selectedScenario)!
+                                      .pdf_value
+                                  ).toExponential(2)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-600">
+                                  PDF Ratio:
+                                </span>
+                                <span className="text-lg font-semibold text-primary">
+                                  {parseFloat(
+                                    parameterMap.get(selectedScenario)!
+                                      .pdf_ratio
+                                  ).toExponential(2)}
+                                </span>
+                              </div>
+                            </div>
+                            <LikelihoodIndicator
+                              likelihood={
+                                parameterMap.get(selectedScenario)!.likelihood
+                              }
+                              className="ml-4"
+                            />
+                          </div>
+                        </div>
                         {parameterSliders(
                           parameterMap.get(selectedScenario)!,
                           selectedScenario
