@@ -41,7 +41,16 @@ def add_cors_headers(response):
 
 # the bigger this magnitude number the more unlikely it is
 def get_likelihood(pdf_ratio):
-    magnitude = -int(np.floor(np.log10(pdf_ratio)))
+    # Handle edge cases
+    if np.isinf(pdf_ratio) or pdf_ratio > 1e308:  # Close to max float value
+        return "Extremely Unlikely"
+    if pdf_ratio <= 0:
+        return "Extremely Unlikely"
+    
+    try:
+        magnitude = -int(np.floor(np.log10(pdf_ratio)))
+    except (OverflowError, ValueError):
+        return "Extremely Unlikely"
 
     # Define categories based on magnitude
     if magnitude >= 200:
@@ -92,7 +101,7 @@ def process_query():
     # Call the extract_information script
     from extract_information import get_weighted_means
 
-    weighted_means = get_weighted_means(query, collection)
+    weighted_means, events = get_weighted_means(query, collection)
     result_list = []
 
     for key, value in weighted_means.items():
@@ -101,21 +110,13 @@ def process_query():
 
     pdf_value = gaussian.pdf(vector)
     pdf_ratio = pdf_value / mean_pdf if mean_pdf != 0 else 0
-
-    # Create a dictionary of weighted means
-    weighted_means_dict = {
-        f"weighted_mean_{i}": value for i, value in enumerate(weighted_means)
-    }
-
-    print("Calculated PDF value:", pdf_value)
-    print("PDF Ratio to Mean:", pdf_ratio)
-
     likelihood = get_likelihood(pdf_ratio)
 
     return jsonify({
         "pdf_ratio": pdf_ratio,
         "pdf_value": pdf_value,
         "likelihood": likelihood,
+        "events": events,  # Include the events in the response
         **weighted_means,
     })
 

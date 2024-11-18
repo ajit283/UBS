@@ -177,10 +177,37 @@ def query_data(query, collection: chromadb.Collection):
 
 
 def get_weighted_means(query, collection: chromadb.Collection):
-    query_result = query_data(query, collection)
-    weighted_means = calculate_weighted_means(query_result)
-
-    return weighted_means
-
+    # Get the query results
+    results = query_data(query, collection)
+    
+    # Debug print to see the structure of results
+    print("First result structure:", results[0] if results else "No results")
+    
+    # Calculate weighted means
+    weighted_means = calculate_weighted_means(results)
+    
+    # Get relevant events from the same results
+    events = []
+    for result in results:
+        # Debug print for metadata
+        print("Result metadata:", result.get("metadata", {}))
+        
+        events.append({
+            "name": result.get("name", "Unnamed Event"),  # Use the 'name' field from the CSV
+            "content": result.get("document", ""),  # The actual event text
+            "date": result.get("date", ""),  # The date from the CSV
+            "relevance": result.get("score", 0)  # The relevance score from Chroma
+        })
+    
+    # Sort events by relevance score in descending order
+    events.sort(key=lambda x: x["relevance"], reverse=True)
+    
+    # Normalize relevance scores to be between 0 and 1
+    if events:
+        max_relevance = max(event["relevance"] for event in events)
+        for event in events:
+            event["relevance"] = event["relevance"] / max_relevance
+    
+    return weighted_means, events
 
 # TODO: Visualizing Trends Over Time: If you’re analyzing multiple query results over time, consider visualizing the results to identify trends more clearly (e.g., plot weighted_mean_unemployment_rate_6m over several queries).
