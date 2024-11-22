@@ -13,4 +13,5 @@ dependencies = [
     "pandas>=2.2.3",
     "scipy>=1.14.1",
     "weaviate-client>=4.9.3",
+    "openai>=1.55.0",
 ]

@@ -1,6 +1,7 @@
 import numpy as np
 
 import chromadb
+import embedding
 
 
 # Function to calculate weighted means using similarity scores as percentages
@@ -128,17 +129,15 @@ def calculate_weighted_means(results):
 # Function that takes in a query and returns the vector search results with similarity scores
 def query_data(query, collection: chromadb.Collection):
 
-    data = collection.query(query_texts=[query])
+    # data = collection.query(query_texts=[query])
+    data = collection.query(
+        # query_embeddings=embedding.openai_ef.embed_with_retries(query)
+        query_texts=[query]
+    )
 
-    # Process and return the results, including similarity scores
-
-    # if len(results) < 1:
-    #     print("No similar documents found.")
-    # else:
-    #     for result in results:
-    #         # print(result)
-    #         print("result")
-    #         print(result)
+    if data is None:
+        print("No similar documents found.")
+        return
 
     results = []
 
@@ -146,10 +145,14 @@ def query_data(query, collection: chromadb.Collection):
     metadatas = data["metadatas"][0]
     distances = data["distances"][0]
 
+    # Convert distances to similarity scores (1 / (1 + distance))
+    # This ensures that smaller distances result in higher scores
+    similarity_scores = 1 / (1 + np.array(distances))
+
     for i in range(len(ids)):
         result = {
             "id": ids[i],
-            "score": distances[i],
+            "score": float(similarity_scores[i]),  # Convert to float for JSON serialization
             **metadatas[i],  # unpacks all metadata fields
         }
         results.append(result)
@@ -179,35 +182,40 @@ def query_data(query, collection: chromadb.Collection):
 def get_weighted_means(query, collection: chromadb.Collection):
     # Get the query results
     results = query_data(query, collection)
-    
+
     # Debug print to see the structure of results
     print("First result structure:", results[0] if results else "No results")
-    
+
     # Calculate weighted means
     weighted_means = calculate_weighted_means(results)
-    
+
     # Get relevant events from the same results
     events = []
     for result in results:
         # Debug print for metadata
         print("Result metadata:", result.get("metadata", {}))
-        
-        events.append({
-            "name": result.get("name", "Unnamed Event"),  # Use the 'name' field from the CSV
-            "content": result.get("document", ""),  # The actual event text
-            "date": result.get("date", ""),  # The date from the CSV
-            "relevance": result.get("score", 0)  # The relevance score from Chroma
-        })
-    
+
+        events.append(
+            {
+                "name": result.get(
+                    "name", "Unnamed Event"
+                ),  # Use the 'name' field from the CSV
+                "content": result.get("document", ""),  # The actual event text
+                "date": result.get("date", ""),  # The date from the CSV
+                "relevance": result.get("score", 0),  # The relevance score from Chroma
+            }
+        )
+
     # Sort events by relevance score in descending order
     events.sort(key=lambda x: x["relevance"], reverse=True)
-    
+
     # Normalize relevance scores to be between 0 and 1
     if events:
         max_relevance = max(event["relevance"] for event in events)
         for event in events:
             event["relevance"] = event["relevance"] / max_relevance
-    
+
     return weighted_means, events
+
 
 # TODO: Visualizing Trends Over Time: If you’re analyzing multiple query results over time, consider visualizing the results to identify trends more clearly (e.g., plot weighted_mean_unemployment_rate_6m over several queries).

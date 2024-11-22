@@ -91,13 +91,20 @@ export default function Component() {
     });
   };
 
-  const recalculatePDF = async (parameters: Parameters, scenarioIdx: number) => {
+  const recalculatePDF = async (
+    parameters: Parameters,
+    scenarioIdx: number
+  ) => {
     // Extract economic parameters
     const economic_params = {
-      weighted_mean_unemployment_rate_6m: parameters.weighted_mean_unemployment_rate_6m,
-      weighted_mean_unemployment_rate_12m: parameters.weighted_mean_unemployment_rate_12m,
-      weighted_mean_unemployment_rate_18m: parameters.weighted_mean_unemployment_rate_18m,
-      weighted_mean_unemployment_rate_24m: parameters.weighted_mean_unemployment_rate_24m,
+      weighted_mean_unemployment_rate_6m:
+        parameters.weighted_mean_unemployment_rate_6m,
+      weighted_mean_unemployment_rate_12m:
+        parameters.weighted_mean_unemployment_rate_12m,
+      weighted_mean_unemployment_rate_18m:
+        parameters.weighted_mean_unemployment_rate_18m,
+      weighted_mean_unemployment_rate_24m:
+        parameters.weighted_mean_unemployment_rate_24m,
       weighted_mean_gdp_6m: parameters.weighted_mean_gdp_6m,
       weighted_mean_gdp_12m: parameters.weighted_mean_gdp_12m,
       weighted_mean_gdp_18m: parameters.weighted_mean_gdp_18m,
@@ -154,7 +161,7 @@ export default function Component() {
       const padding = range * 0.2;
       return {
         min: min - padding,
-        max: max + padding
+        max: max + padding,
       };
     };
 
@@ -210,10 +217,13 @@ export default function Component() {
   }, [selectedScenario, object?.scenarios]);
 
   const handleGenerate = async () => {
+    // Clear all states before starting a new query
+    setParameterMap(new Map());
+    setSelectedScenario(-1);
+    setChartScales(null);
+    
     setIsGenerating(true);
     await submit(instructions);
-
-    setSelectedScenario(-1);
     setIsGenerating(false);
   };
 
@@ -240,10 +250,26 @@ export default function Component() {
               scaleMin={chartScales.unemployment.min}
               scaleMax={chartScales.unemployment.max}
               onChange={(newValues) => {
-                handleSliderChange(scenarioIdx, "weighted_mean_unemployment_rate_6m", newValues[0]);
-                handleSliderChange(scenarioIdx, "weighted_mean_unemployment_rate_12m", newValues[1]);
-                handleSliderChange(scenarioIdx, "weighted_mean_unemployment_rate_18m", newValues[2]);
-                handleSliderChange(scenarioIdx, "weighted_mean_unemployment_rate_24m", newValues[3]);
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_unemployment_rate_6m",
+                  newValues[0]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_unemployment_rate_12m",
+                  newValues[1]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_unemployment_rate_18m",
+                  newValues[2]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_unemployment_rate_24m",
+                  newValues[3]
+                );
               }}
             />
           </CardContent>
@@ -266,10 +292,26 @@ export default function Component() {
               scaleMin={chartScales.gdp.min}
               scaleMax={chartScales.gdp.max}
               onChange={(newValues) => {
-                handleSliderChange(scenarioIdx, "weighted_mean_gdp_6m", newValues[0]);
-                handleSliderChange(scenarioIdx, "weighted_mean_gdp_12m", newValues[1]);
-                handleSliderChange(scenarioIdx, "weighted_mean_gdp_18m", newValues[2]);
-                handleSliderChange(scenarioIdx, "weighted_mean_gdp_24m", newValues[3]);
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_gdp_6m",
+                  newValues[0]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_gdp_12m",
+                  newValues[1]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_gdp_18m",
+                  newValues[2]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_gdp_24m",
+                  newValues[3]
+                );
               }}
             />
           </CardContent>
@@ -292,10 +334,26 @@ export default function Component() {
               scaleMin={chartScales.oilPrice.min}
               scaleMax={chartScales.oilPrice.max}
               onChange={(newValues) => {
-                handleSliderChange(scenarioIdx, "weighted_mean_oil_price_6m", newValues[0]);
-                handleSliderChange(scenarioIdx, "weighted_mean_oil_price_12m", newValues[1]);
-                handleSliderChange(scenarioIdx, "weighted_mean_oil_price_18m", newValues[2]);
-                handleSliderChange(scenarioIdx, "weighted_mean_oil_price_24m", newValues[3]);
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_oil_price_6m",
+                  newValues[0]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_oil_price_12m",
+                  newValues[1]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_oil_price_18m",
+                  newValues[2]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_oil_price_24m",
+                  newValues[3]
+                );
               }}
             />
           </CardContent>
@@ -318,10 +376,26 @@ export default function Component() {
               scaleMin={chartScales.cpi.min}
               scaleMax={chartScales.cpi.max}
               onChange={(newValues) => {
-                handleSliderChange(scenarioIdx, "weighted_mean_cpi_6m", newValues[0]);
-                handleSliderChange(scenarioIdx, "weighted_mean_cpi_12m", newValues[1]);
-                handleSliderChange(scenarioIdx, "weighted_mean_cpi_18m", newValues[2]);
-                handleSliderChange(scenarioIdx, "weighted_mean_cpi_24m", newValues[3]);
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_cpi_6m",
+                  newValues[0]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_cpi_12m",
+                  newValues[1]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_cpi_18m",
+                  newValues[2]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_cpi_24m",
+                  newValues[3]
+                );
               }}
             />
           </CardContent>
@@ -362,7 +436,7 @@ export default function Component() {
     );
   };
 
-  function EventList({ events }: { events: Parameters['events'] }) {
+  function EventList({ events }: { events: Parameters["events"] }) {
     if (!events || events.length === 0) {
       return null;
     }
@@ -379,7 +453,9 @@ export default function Component() {
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">{event.name}</h3>
-                    <p className="text-sm text-muted-foreground">{event.date}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {event.date}
+                    </p>
                     <p className="mt-2">{event.content}</p>
                   </div>
                   <div className="ml-4">
@@ -413,7 +489,7 @@ export default function Component() {
                   value={instructions}
                   onChange={(e) => setInstructions(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !isGenerating) {
+                    if (e.key === "Enter" && !isGenerating) {
                       handleGenerate();
                     }
                   }}
@@ -453,8 +529,12 @@ export default function Component() {
                             <div className="flex-shrink-0">
                               <BarChart3 className="h-4 w-4 mr-2" />
                             </div>
+
                             <div className="flex-1 min-w-0">
-                              {scenario?.description}
+                              <div className="font-bold ">
+                                {scenario?.event}
+                              </div>
+                              <div>{scenario?.description}</div>
                             </div>
                           </div>
                         </CardTitle>

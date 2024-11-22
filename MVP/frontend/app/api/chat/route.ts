@@ -19,28 +19,51 @@ const responseCache = new Map<string, any>();
 
 export async function POST(req: Request) {
   const context = await req.json();
-  const prompt = `Generate 3 economic scenarios, adhering to these special instructions:${context}`;
+  const prompt =
+    `Generate 3 economic scenarios, they should be totally independent of each other. Each one should individually be a scenario. One should not need to read any other scenario to understand it. \n` +
+    context.length
+      ? `use this as inspiration: ${context}`
+      : ``;
 
   // Check if response exists in cache
   const cachedResponse = responseCache.get(prompt);
   if (cachedResponse) {
     return new Response(JSON.stringify(cachedResponse), {
-      headers: { 'Content-Type': 'application/json' }
+      headers: { "Content-Type": "application/json" },
     });
   }
 
-  const result = await streamObject({
-    model: openai("gpt-4o-mini"),
-    schema: eventSchema,
-    prompt,
-  });
+  try {
+    const result = await streamObject({
+      model: openai("gpt-4o-mini"),
+      schema: eventSchema,
+      prompt,
+    });
 
-  // Cache the response before returning
-  const response = await result.toTextStreamResponse();
-  const responseBody = await response.text();
-  responseCache.set(prompt, JSON.parse(responseBody));
+    // Convert to text stream response but keep streaming
+    const response = result.toTextStreamResponse();
 
-  return new Response(responseBody, {
-    headers: { 'Content-Type': 'application/json' }
-  });
+    // Cache the response after it's complete
+    response
+      .clone()
+      .text()
+      .then((text) => {
+        try {
+          responseCache.set(prompt, JSON.parse(text));
+        } catch (e) {
+          console.error("Failed to cache response:", e);
+        }
+      });
+
+    return response;
+  } catch (error) {
+    console.error("Error in chat route:", error);
+    return new Response(
+      JSON.stringify({ error: "Failed to generate response" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
 }
