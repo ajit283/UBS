@@ -1,0 +1,5 @@
+- `OPENAI_API_KEY` must be set as an environment variable
+- (install UV here: https://docs.astral.sh/uv/)
+- run `uv run load_data.py` to load data
+- run `uv run app.py` to start backend
+- run `npm run dev` in frontend folder to start frontend
