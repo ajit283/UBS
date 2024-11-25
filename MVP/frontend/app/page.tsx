@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { TrendingUp, Loader2, BarChart3 } from "lucide-react";
 import { useChat, experimental_useObject as useObject } from "ai/react";
-import { eventSchema } from "./api/chat/route";
+import { eventSchema } from "./types";
 import { z } from "zod";
 import { LikelihoodIndicator } from "@/components/ui/likelihood-indicator";
 import { DraggableChart } from "@/components/ui/draggable-chart";
@@ -221,7 +221,7 @@ export default function Component() {
     setParameterMap(new Map());
     setSelectedScenario(-1);
     setChartScales(null);
-    
+
     setIsGenerating(true);
     await submit(instructions);
     setIsGenerating(false);
@@ -562,6 +562,7 @@ export default function Component() {
                                 </span>
                                 <span className="text-lg font-semibold text-primary">
                                   {parseFloat(
+                                    //@ts-ignore
                                     parameterMap.get(selectedScenario)!
                                       .pdf_value
                                   ).toExponential(2)}
@@ -573,6 +574,7 @@ export default function Component() {
                                 </span>
                                 <span className="text-lg font-semibold text-primary">
                                   {parseFloat(
+                                    //@ts-ignore
                                     parameterMap.get(selectedScenario)!
                                       .pdf_ratio
                                   ).toExponential(2)}

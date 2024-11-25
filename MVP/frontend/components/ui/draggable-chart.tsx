@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -9,10 +9,10 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-import 'chartjs-plugin-dragdata';
+  Legend,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+import "chartjs-plugin-dragdata";
 
 ChartJS.register(
   CategoryScale,
@@ -34,10 +34,18 @@ interface DraggableChartProps {
   scaleMax: number;
 }
 
-export function DraggableChart({ label, values, max, unit, onValuesChange, scaleMin, scaleMax }: DraggableChartProps) {
-  const timeLabels = ['6m', '12m', '18m', '24m'];
+export function DraggableChart({
+  label,
+  values,
+  max,
+  unit,
+  onValuesChange,
+  scaleMin,
+  scaleMax,
+}: DraggableChartProps) {
+  const timeLabels = ["6m", "12m", "18m", "24m"];
 
-  const options = {
+  const options: any = {
     responsive: true,
     maintainAspectRatio: false,
     animation: false,
@@ -46,8 +54,8 @@ export function DraggableChart({ label, values, max, unit, onValuesChange, scale
         left: 0,
         right: 0,
         top: 0,
-        bottom: 0
-      }
+        bottom: 0,
+      },
     },
     plugins: {
       legend: {
@@ -58,26 +66,31 @@ export function DraggableChart({ label, values, max, unit, onValuesChange, scale
         text: label,
         padding: {
           top: 0,
-          bottom: 8
-        }
+          bottom: 8,
+        },
       },
       dragData: {
         round: 1,
         dragX: false,
-        onDragStart: function() {
+        onDragStart: function () {
           // Optional callback
         },
-        onDrag: function() {
+        onDrag: function () {
           // Optional callback
         },
-        onDragEnd: function(e: any, datasetIndex: number, index: number, value: number) {
+        onDragEnd: function (
+          e: any,
+          datasetIndex: number,
+          index: number,
+          value: number
+        ) {
           // Ensure value stays within scale bounds
           const newValue = Math.min(Math.max(value, scaleMin), scaleMax);
           const newValues = [...values];
           newValues[index] = newValue;
           onValuesChange(newValues);
-        }
-      }
+        },
+      },
     },
     scales: {
       y: {
@@ -88,19 +101,19 @@ export function DraggableChart({ label, values, max, unit, onValuesChange, scale
           text: unit,
           padding: {
             top: 0,
-            bottom: 0
-          }
+            bottom: 0,
+          },
         },
         ticks: {
-          padding: 4
-        }
+          padding: 4,
+        },
       },
       x: {
         ticks: {
-          padding: 4
-        }
-      }
-    }
+          padding: 4,
+        },
+      },
+    },
   };
 
   const data = {
@@ -109,16 +122,16 @@ export function DraggableChart({ label, values, max, unit, onValuesChange, scale
       {
         label: label,
         data: values,
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        borderColor: "rgb(75, 192, 192)",
+        backgroundColor: "rgba(75, 192, 192, 0.5)",
         tension: 0.1,
-        pointBackgroundColor: 'rgb(75, 192, 192)',
-        pointBorderColor: 'white',
+        pointBackgroundColor: "rgb(75, 192, 192)",
+        pointBorderColor: "white",
         pointBorderWidth: 2,
         pointRadius: 6,
         pointHoverRadius: 8,
-      }
-    ]
+      },
+    ],
   };
 
   return (

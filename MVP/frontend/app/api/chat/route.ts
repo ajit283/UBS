@@ -1,15 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { streamObject } from "ai";
-import { z } from "zod";
-
-export const eventSchema = z.object({
-  scenarios: z.array(
-    z.object({
-      event: z.string(),
-      description: z.string(),
-    })
-  ),
-});
+import { eventSchema } from "@/app/types";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
