@@ -19,13 +19,16 @@ mean_pdf = gaussian.pdf(mean)
 app = Flask(__name__)
 
 # Configure CORS
-CORS(app, resources={
-    r"/*": {
-        "origins": "http://localhost:3000",
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": "*",
+            "methods": ["GET", "POST", "OPTIONS"],
+            "allow_headers": ["Content-Type"],
+        }
+    },
+)
 
 # Load MongoDB client and collection
 client, collection = load_data()
@@ -46,7 +49,7 @@ def get_likelihood(pdf_ratio):
         return "Extremely Unlikely"
     if pdf_ratio <= 0:
         return "Extremely Unlikely"
-    
+
     try:
         magnitude = -int(np.floor(np.log10(pdf_ratio)))
     except (OverflowError, ValueError):
@@ -82,11 +85,9 @@ def calculate_pdf():
     print("PDF Ratio to Mean:", pdf_ratio)
 
     likelihood = get_likelihood(pdf_ratio)
-    return jsonify({
-        "pdf_ratio": pdf_ratio,
-        "pdf_value": pdf_value,
-        "likelihood": likelihood
-    })
+    return jsonify(
+        {"pdf_ratio": pdf_ratio, "pdf_value": pdf_value, "likelihood": likelihood}
+    )
 
 
 @app.route("/process_query", methods=["POST", "OPTIONS"])
@@ -112,13 +113,15 @@ def process_query():
     pdf_ratio = pdf_value / mean_pdf if mean_pdf != 0 else 0
     likelihood = get_likelihood(pdf_ratio)
 
-    return jsonify({
-        "pdf_ratio": pdf_ratio,
-        "pdf_value": pdf_value,
-        "likelihood": likelihood,
-        "events": events,  # Include the events in the response
-        **weighted_means,
-    })
+    return jsonify(
+        {
+            "pdf_ratio": pdf_ratio,
+            "pdf_value": pdf_value,
+            "likelihood": likelihood,
+            "events": events,  # Include the events in the response
+            **weighted_means,
+        }
+    )
 
 
 @app.route("/health", methods=["GET"])
