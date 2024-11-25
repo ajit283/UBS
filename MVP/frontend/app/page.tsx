@@ -46,7 +46,7 @@ type ChartScales = {
   cpi: { min: number; max: number };
 };
 
-const BACKEND_URL = process.env.BACKEND_URL!!;
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL!!;
 
 export default function Component() {
   async function getParameters(scenario: number, query: string) {
