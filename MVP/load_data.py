@@ -8,7 +8,7 @@ def load_data():
 
     client = chromadb.PersistentClient()
 
-    client.delete_collection("events")
+    # client.delete_collection("events")
 
     collection = client.get_or_create_collection(
         "events", embedding_function=embedding.openai_ef
