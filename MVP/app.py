@@ -33,6 +33,64 @@ CORS(
 # Load MongoDB client and collection
 client, collection = load_data()
 
+# Base values for all metrics
+BASE_VALUES = {
+    "GDP": 27.36,  # Billion USD
+    "Oil": 69.0,  # USD per barrel
+    "Unemployment": 2.0,  # Percentage
+    "CPI": 315.0,  # Index value
+}
+
+
+def convert_to_absolute(row):
+    transformed_row = row.copy()
+    # Convert GDP difference to absolute value
+    if "GDP" in row:
+
+        transformed_row["GDP"] = BASE_VALUES["GDP"] + row["GDP"] / 1000
+    # Convert Oil price difference to absolute value
+    if "Oil" in row:
+        transformed_row["Oil"] = BASE_VALUES["Oil"] + row["Oil"]
+    # Convert Unemployment percentage change to absolute value
+    if "Unemployment" in row:
+        transformed_row["Unemployment"] = BASE_VALUES["Unemployment"] + (
+            BASE_VALUES["Unemployment"] * row["Unemployment"] / 100
+        )
+    # Convert CPI percentage change to absolute value
+    if "CPI" in row:
+        transformed_row["CPI"] = BASE_VALUES["CPI"] + (
+            BASE_VALUES["CPI"] * row["CPI"] / 100
+        )
+        print(transformed_row["CPI"])
+    return transformed_row
+
+
+def convert_metrics_to_absolute(metrics):
+    absolute_metrics = metrics.copy()
+
+    for key, value in metrics.items():
+        # Handle GDP metrics
+        if "gdp" in key.lower():
+            absolute_metrics[key] = BASE_VALUES["GDP"] + value / 1000
+
+        # Handle Oil price metrics
+        elif "oil_price" in key.lower():
+            absolute_metrics[key] = BASE_VALUES["Oil"] + value
+
+        # Handle Unemployment rate metrics
+        elif "unemployment_rate" in key.lower():
+            absolute_metrics[key] = BASE_VALUES["Unemployment"] + (
+                BASE_VALUES["Unemployment"] * value / 100
+            )
+
+        # Handle CPI metrics
+        elif "cpi" in key.lower():
+            absolute_metrics[key] = BASE_VALUES["CPI"] + (
+                BASE_VALUES["CPI"] * value / 100
+            )
+
+    return absolute_metrics
+
 
 def add_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
@@ -76,13 +134,13 @@ def calculate_pdf():
     # Extract economic parameters from the request
     economic_params = request.json["economic_params"]
     vector = np.array(list(economic_params.values()), dtype=float)
-    print("Received economic parameters:\n", vector)
+    # print("Received economic parameters:\n", vector)
 
     pdf_value = gaussian.pdf(vector)
     pdf_ratio = pdf_value / mean_pdf if mean_pdf != 0 else 0
 
-    print("Calculated PDF value:", pdf_value)
-    print("PDF Ratio to Mean:", pdf_ratio)
+    # print("Calculated PDF value:", pdf_value)
+    # print("PDF Ratio to Mean:", pdf_ratio)
 
     likelihood = get_likelihood(pdf_ratio)
     return jsonify(
@@ -115,13 +173,21 @@ def process_query():
     pdf_ratio = pdf_value / mean_pdf if mean_pdf != 0 else 0
     likelihood = get_likelihood(pdf_ratio)
 
+    # Update limited_weighted_means with absolute values
+    # Convert all metrics to absolute values
+    absolute_weighted_means = convert_metrics_to_absolute(limited_weighted_means)
+    print("absolute weighted means:")
+    print(absolute_weighted_means)
+    print("relative_weighted_means")
+    print(limited_weighted_means)
+
     return jsonify(
         {
             "pdf_ratio": pdf_ratio,
             "pdf_value": pdf_value,
             "likelihood": likelihood,
             "events": events,  # Include the events in the response
-            **limited_weighted_means,
+            **absolute_weighted_means,
         }
     )
 

@@ -190,7 +190,7 @@ def get_weighted_means(query, collection: chromadb.Collection):
 
     # Calculate weighted means
     weighted_means = calculate_weighted_means(results)
-    limited_weighted_means = calculate_weighted_means(results[:10])
+    limited_weighted_means = calculate_weighted_means(results[:1])
 
     # Get relevant events from the same results
     events = []

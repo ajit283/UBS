@@ -283,11 +283,11 @@ export default function Component() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>GDP Change</CardTitle>
+            <CardTitle>GDP</CardTitle>
           </CardHeader>
           <CardContent>
             <ParameterChart
-              label="GDP Change"
+              label="GDP"
               values={[
                 parameters.weighted_mean_gdp_6m,
                 parameters.weighted_mean_gdp_12m,
@@ -337,7 +337,7 @@ export default function Component() {
                 parameters.weighted_mean_oil_price_24m,
               ]}
               max={200}
-              unit="USD"
+              unit="USD/barrel"
               scaleMin={chartScales.oilPrice.min}
               scaleMax={chartScales.oilPrice.max}
               onChange={(newValues) => {
@@ -367,7 +367,7 @@ export default function Component() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>CPI Change</CardTitle>
+            <CardTitle>CPI</CardTitle>
           </CardHeader>
           <CardContent>
             <ParameterChart
@@ -379,7 +379,7 @@ export default function Component() {
                 parameters.weighted_mean_cpi_24m,
               ]}
               max={10}
-              unit="%"
+              unit=""
               scaleMin={chartScales.cpi.min}
               scaleMax={chartScales.cpi.max}
               onChange={(newValues) => {
