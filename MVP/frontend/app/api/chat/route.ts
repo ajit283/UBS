@@ -41,12 +41,12 @@ The context is: ${context}`
   console.log(prompt);
 
   // Check if response exists in cache
-  const cachedResponse = responseCache.get(prompt);
-  if (cachedResponse) {
-    return new Response(JSON.stringify(cachedResponse), {
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+  // const cachedResponse = responseCache.get(prompt);
+  // if (cachedResponse) {
+  //   return new Response(JSON.stringify(cachedResponse), {
+  //     headers: { "Content-Type": "application/json" },
+  //   });
+  // }
 
   try {
     const result = await streamObject({
