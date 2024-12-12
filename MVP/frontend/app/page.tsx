@@ -10,6 +10,7 @@ import { eventSchema } from "./types";
 import { z } from "zod";
 import { LikelihoodIndicator } from "@/components/ui/likelihood-indicator";
 import { DraggableChart } from "@/components/ui/draggable-chart";
+import { Slider } from "@/components/ui/slider";
 
 type Parameters = {
   pdf_ratio: number;
@@ -73,6 +74,8 @@ export default function Component() {
     setChartScales(calculateChartScales(rs));
   }
 
+  const [scaleFactor, setScaleFactor] = useState(1);
+
   const handleSliderChange = (
     scenario: number,
     key: keyof Parameters,
@@ -93,30 +96,34 @@ export default function Component() {
 
   const recalculatePDF = async (
     parameters: Parameters,
-    scenarioIdx: number
+    scenarioIdx: number,
+    scale: number = 1
   ) => {
-    // Extract economic parameters
+    // Extract economic parameters and apply scaling
     const economic_params = {
       weighted_mean_unemployment_rate_6m:
-        parameters.weighted_mean_unemployment_rate_6m,
+        parameters.weighted_mean_unemployment_rate_6m * scale,
       weighted_mean_unemployment_rate_12m:
-        parameters.weighted_mean_unemployment_rate_12m,
+        parameters.weighted_mean_unemployment_rate_12m * scale,
       weighted_mean_unemployment_rate_18m:
-        parameters.weighted_mean_unemployment_rate_18m,
+        parameters.weighted_mean_unemployment_rate_18m * scale,
       weighted_mean_unemployment_rate_24m:
-        parameters.weighted_mean_unemployment_rate_24m,
-      weighted_mean_gdp_6m: parameters.weighted_mean_gdp_6m,
-      weighted_mean_gdp_12m: parameters.weighted_mean_gdp_12m,
-      weighted_mean_gdp_18m: parameters.weighted_mean_gdp_18m,
-      weighted_mean_gdp_24m: parameters.weighted_mean_gdp_24m,
-      weighted_mean_oil_price_6m: parameters.weighted_mean_oil_price_6m,
-      weighted_mean_oil_price_12m: parameters.weighted_mean_oil_price_12m,
-      weighted_mean_oil_price_18m: parameters.weighted_mean_oil_price_18m,
-      weighted_mean_oil_price_24m: parameters.weighted_mean_oil_price_24m,
-      weighted_mean_cpi_6m: parameters.weighted_mean_cpi_6m,
-      weighted_mean_cpi_12m: parameters.weighted_mean_cpi_12m,
-      weighted_mean_cpi_18m: parameters.weighted_mean_cpi_18m,
-      weighted_mean_cpi_24m: parameters.weighted_mean_cpi_24m,
+        parameters.weighted_mean_unemployment_rate_24m * scale,
+      weighted_mean_gdp_6m: parameters.weighted_mean_gdp_6m * scale,
+      weighted_mean_gdp_12m: parameters.weighted_mean_gdp_12m * scale,
+      weighted_mean_gdp_18m: parameters.weighted_mean_gdp_18m * scale,
+      weighted_mean_gdp_24m: parameters.weighted_mean_gdp_24m * scale,
+      weighted_mean_oil_price_6m: parameters.weighted_mean_oil_price_6m * scale,
+      weighted_mean_oil_price_12m:
+        parameters.weighted_mean_oil_price_12m * scale,
+      weighted_mean_oil_price_18m:
+        parameters.weighted_mean_oil_price_18m * scale,
+      weighted_mean_oil_price_24m:
+        parameters.weighted_mean_oil_price_24m * scale,
+      weighted_mean_cpi_6m: parameters.weighted_mean_cpi_6m * scale,
+      weighted_mean_cpi_12m: parameters.weighted_mean_cpi_12m * scale,
+      weighted_mean_cpi_18m: parameters.weighted_mean_cpi_18m * scale,
+      weighted_mean_cpi_24m: parameters.weighted_mean_cpi_24m * scale,
     };
 
     const response = await fetch(BACKEND_URL + "calculate_pdf", {
@@ -276,11 +283,11 @@ export default function Component() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>GDP Growth</CardTitle>
+            <CardTitle>GDP Change</CardTitle>
           </CardHeader>
           <CardContent>
             <ParameterChart
-              label="GDP Growth"
+              label="GDP Change"
               values={[
                 parameters.weighted_mean_gdp_6m,
                 parameters.weighted_mean_gdp_12m,
@@ -288,7 +295,7 @@ export default function Component() {
                 parameters.weighted_mean_gdp_24m,
               ]}
               max={10}
-              unit="%"
+              unit="Billion USD"
               scaleMin={chartScales.gdp.min}
               scaleMax={chartScales.gdp.max}
               onChange={(newValues) => {
@@ -360,7 +367,7 @@ export default function Component() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>CPI</CardTitle>
+            <CardTitle>CPI Change</CardTitle>
           </CardHeader>
           <CardContent>
             <ParameterChart
@@ -459,9 +466,9 @@ export default function Component() {
                     <p className="mt-2">{event.content}</p>
                   </div>
                   <div className="ml-4">
-                    <span className="text-sm text-muted-foreground">
+                    {/* <span className="text-sm text-muted-foreground">
                       Relevance: {(event.relevance * 100).toFixed(1)}%
-                    </span>
+                    </span> */}
                   </div>
                 </div>
               </div>
@@ -471,6 +478,8 @@ export default function Component() {
       </Card>
     );
   }
+
+  // console.log(parameterMap.get(0));
 
   return (
     <div className="container mx-auto p-4 bg-gray-50 min-h-screen">
@@ -587,6 +596,34 @@ export default function Component() {
                               }
                               className="ml-4"
                             />
+                          </div>
+                          <div className="flex flex-row py-2">
+                            <div className="text-sm px-2 whitespace-nowrap">
+                              less extreme
+                            </div>
+                            <Slider
+                              onValueCommit={(v) => {
+                                setScaleFactor(v[0]);
+
+                                // Get current parameters for selected scenario
+                                const currentParams =
+                                  parameterMap.get(selectedScenario);
+                                if (currentParams) {
+                                  // Recalculate PDF with the new scale factor
+                                  recalculatePDF(
+                                    currentParams,
+                                    selectedScenario,
+                                    v[0]
+                                  );
+                                }
+                              }}
+                              defaultValue={[1]}
+                              max={2}
+                              step={0.1}
+                            />
+                            <div className="text-sm px-2 whitespace-nowrap">
+                              more extreme
+                            </div>
                           </div>
                         </div>
                         {parameterCharts(

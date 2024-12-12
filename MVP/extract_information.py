@@ -152,7 +152,9 @@ def query_data(query, collection: chromadb.Collection):
     for i in range(len(ids)):
         result = {
             "id": ids[i],
-            "score": float(similarity_scores[i]),  # Convert to float for JSON serialization
+            "score": float(
+                similarity_scores[i]
+            ),  # Convert to float for JSON serialization
             **metadatas[i],  # unpacks all metadata fields
         }
         results.append(result)
@@ -188,6 +190,7 @@ def get_weighted_means(query, collection: chromadb.Collection):
 
     # Calculate weighted means
     weighted_means = calculate_weighted_means(results)
+    limited_weighted_means = calculate_weighted_means(results[:10])
 
     # Get relevant events from the same results
     events = []
@@ -215,7 +218,7 @@ def get_weighted_means(query, collection: chromadb.Collection):
         for event in events:
             event["relevance"] = event["relevance"] / max_relevance
 
-    return weighted_means, events
+    return weighted_means, events, limited_weighted_means
 
 
 # TODO: Visualizing Trends Over Time: If you’re analyzing multiple query results over time, consider visualizing the results to identify trends more clearly (e.g., plot weighted_mean_unemployment_rate_6m over several queries).

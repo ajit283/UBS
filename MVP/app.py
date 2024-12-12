@@ -102,7 +102,9 @@ def process_query():
     # Call the extract_information script
     from extract_information import get_weighted_means
 
-    weighted_means, events = get_weighted_means(query, collection)
+    weighted_means, events, limited_weighted_means = get_weighted_means(
+        query, collection
+    )
     result_list = []
 
     for key, value in weighted_means.items():
@@ -119,7 +121,7 @@ def process_query():
             "pdf_value": pdf_value,
             "likelihood": likelihood,
             "events": events,  # Include the events in the response
-            **weighted_means,
+            **limited_weighted_means,
         }
     )
 
