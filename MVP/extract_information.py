@@ -208,6 +208,8 @@ def get_weighted_means(query, collection: chromadb.Collection):
                 "relevance": result.get("score", 0),  # The relevance score from Chroma
             }
         )
+    print("weighted_means:")
+    print(weighted_means)
 
     # Sort events by relevance score in descending order
     events.sort(key=lambda x: x["relevance"], reverse=True)

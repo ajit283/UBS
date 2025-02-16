@@ -43,7 +43,7 @@ export function DraggableChart({
   scaleMin,
   scaleMax,
 }: DraggableChartProps) {
-  const timeLabels = ["6m", "12m", "18m", "24m"];
+  const timeLabels = ["0m", "6m", "12m", "18m", "24m"];
 
   const options: any = {
     responsive: true,

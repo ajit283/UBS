@@ -68,6 +68,9 @@ def convert_to_absolute(row):
 def convert_metrics_to_absolute(metrics):
     absolute_metrics = metrics.copy()
 
+    print("metrics:")
+    print(metrics)
+
     for key, value in metrics.items():
         # Handle GDP metrics
         if "gdp" in key.lower():
@@ -79,9 +82,7 @@ def convert_metrics_to_absolute(metrics):
 
         # Handle Unemployment rate metrics
         elif "unemployment_rate" in key.lower():
-            absolute_metrics[key] = BASE_VALUES["Unemployment"] + (
-                BASE_VALUES["Unemployment"] * value / 100
-            )
+            absolute_metrics[key] = BASE_VALUES["Unemployment"] + (value)
 
         # Handle CPI metrics
         elif "cpi" in key.lower():
@@ -176,6 +177,17 @@ def process_query():
     # Update limited_weighted_means with absolute values
     # Convert all metrics to absolute values
     absolute_weighted_means = convert_metrics_to_absolute(limited_weighted_means)
+
+    absolute_weighted_means["weighted_mean_cpi_0m"] = BASE_VALUES["CPI"]
+
+    absolute_weighted_means["weighted_mean_gdp_0m"] = BASE_VALUES["GDP"]
+
+    absolute_weighted_means["weighted_mean_oil_price_0m"] = BASE_VALUES["Oil"]
+
+    absolute_weighted_means["weighted_mean_unemployment_rate_0m"] = BASE_VALUES[
+        "Unemployment"
+    ]
+
     print("absolute weighted means:")
     print(absolute_weighted_means)
     print("relative_weighted_means")

@@ -11,22 +11,27 @@ import { z } from "zod";
 import { LikelihoodIndicator } from "@/components/ui/likelihood-indicator";
 import { DraggableChart } from "@/components/ui/draggable-chart";
 import { Slider } from "@/components/ui/slider";
+import Image from "next/image";
 
 type Parameters = {
   pdf_ratio: number;
   pdf_value: number;
+  weighted_mean_unemployment_rate_0m: number;
   weighted_mean_unemployment_rate_6m: number;
   weighted_mean_unemployment_rate_12m: number;
   weighted_mean_unemployment_rate_18m: number;
   weighted_mean_unemployment_rate_24m: number;
+  weighted_mean_gdp_0m: number;
   weighted_mean_gdp_6m: number;
   weighted_mean_gdp_12m: number;
   weighted_mean_gdp_18m: number;
   weighted_mean_gdp_24m: number;
+  weighted_mean_oil_price_0m: number;
   weighted_mean_oil_price_6m: number;
   weighted_mean_oil_price_12m: number;
   weighted_mean_oil_price_18m: number;
   weighted_mean_oil_price_24m: number;
+  weighted_mean_cpi_0m: number;
   weighted_mean_cpi_6m: number;
   weighted_mean_cpi_12m: number;
   weighted_mean_cpi_18m: number;
@@ -51,6 +56,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL!!;
 
 export default function Component() {
   async function getParameters(scenario: number, query: string) {
+    console.log(BACKEND_URL);
     const response = await fetch(BACKEND_URL + "process_query", {
       method: "POST",
       headers: {
@@ -174,24 +180,28 @@ export default function Component() {
 
     return {
       unemployment: calculateScale([
+        parameters.weighted_mean_unemployment_rate_0m,
         parameters.weighted_mean_unemployment_rate_6m,
         parameters.weighted_mean_unemployment_rate_12m,
         parameters.weighted_mean_unemployment_rate_18m,
         parameters.weighted_mean_unemployment_rate_24m,
       ]),
       gdp: calculateScale([
+        parameters.weighted_mean_gdp_0m,
         parameters.weighted_mean_gdp_6m,
         parameters.weighted_mean_gdp_12m,
         parameters.weighted_mean_gdp_18m,
         parameters.weighted_mean_gdp_24m,
       ]),
       oilPrice: calculateScale([
+        parameters.weighted_mean_oil_price_0m,
         parameters.weighted_mean_oil_price_6m,
         parameters.weighted_mean_oil_price_12m,
         parameters.weighted_mean_oil_price_18m,
         parameters.weighted_mean_oil_price_24m,
       ]),
       cpi: calculateScale([
+        parameters.weighted_mean_cpi_0m,
         parameters.weighted_mean_cpi_6m,
         parameters.weighted_mean_cpi_12m,
         parameters.weighted_mean_cpi_18m,
@@ -247,6 +257,7 @@ export default function Component() {
             <ParameterChart
               label="Unemployment Rate"
               values={[
+                parameters.weighted_mean_unemployment_rate_0m,
                 parameters.weighted_mean_unemployment_rate_6m,
                 parameters.weighted_mean_unemployment_rate_12m,
                 parameters.weighted_mean_unemployment_rate_18m,
@@ -257,25 +268,26 @@ export default function Component() {
               scaleMin={chartScales.unemployment.min}
               scaleMax={chartScales.unemployment.max}
               onChange={(newValues) => {
+                // Do not update the baseline (index 0)
                 handleSliderChange(
                   scenarioIdx,
                   "weighted_mean_unemployment_rate_6m",
-                  newValues[0]
-                );
-                handleSliderChange(
-                  scenarioIdx,
-                  "weighted_mean_unemployment_rate_12m",
                   newValues[1]
                 );
                 handleSliderChange(
                   scenarioIdx,
-                  "weighted_mean_unemployment_rate_18m",
+                  "weighted_mean_unemployment_rate_12m",
                   newValues[2]
                 );
                 handleSliderChange(
                   scenarioIdx,
-                  "weighted_mean_unemployment_rate_24m",
+                  "weighted_mean_unemployment_rate_18m",
                   newValues[3]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_unemployment_rate_24m",
+                  newValues[4]
                 );
               }}
             />
@@ -289,6 +301,7 @@ export default function Component() {
             <ParameterChart
               label="GDP"
               values={[
+                parameters.weighted_mean_gdp_0m,
                 parameters.weighted_mean_gdp_6m,
                 parameters.weighted_mean_gdp_12m,
                 parameters.weighted_mean_gdp_18m,
@@ -302,22 +315,22 @@ export default function Component() {
                 handleSliderChange(
                   scenarioIdx,
                   "weighted_mean_gdp_6m",
-                  newValues[0]
-                );
-                handleSliderChange(
-                  scenarioIdx,
-                  "weighted_mean_gdp_12m",
                   newValues[1]
                 );
                 handleSliderChange(
                   scenarioIdx,
-                  "weighted_mean_gdp_18m",
+                  "weighted_mean_gdp_12m",
                   newValues[2]
                 );
                 handleSliderChange(
                   scenarioIdx,
-                  "weighted_mean_gdp_24m",
+                  "weighted_mean_gdp_18m",
                   newValues[3]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_gdp_24m",
+                  newValues[4]
                 );
               }}
             />
@@ -331,6 +344,7 @@ export default function Component() {
             <ParameterChart
               label="Oil Price"
               values={[
+                parameters.weighted_mean_oil_price_0m,
                 parameters.weighted_mean_oil_price_6m,
                 parameters.weighted_mean_oil_price_12m,
                 parameters.weighted_mean_oil_price_18m,
@@ -344,22 +358,22 @@ export default function Component() {
                 handleSliderChange(
                   scenarioIdx,
                   "weighted_mean_oil_price_6m",
-                  newValues[0]
-                );
-                handleSliderChange(
-                  scenarioIdx,
-                  "weighted_mean_oil_price_12m",
                   newValues[1]
                 );
                 handleSliderChange(
                   scenarioIdx,
-                  "weighted_mean_oil_price_18m",
+                  "weighted_mean_oil_price_12m",
                   newValues[2]
                 );
                 handleSliderChange(
                   scenarioIdx,
-                  "weighted_mean_oil_price_24m",
+                  "weighted_mean_oil_price_18m",
                   newValues[3]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_oil_price_24m",
+                  newValues[4]
                 );
               }}
             />
@@ -373,6 +387,7 @@ export default function Component() {
             <ParameterChart
               label="CPI"
               values={[
+                parameters.weighted_mean_cpi_0m,
                 parameters.weighted_mean_cpi_6m,
                 parameters.weighted_mean_cpi_12m,
                 parameters.weighted_mean_cpi_18m,
@@ -386,22 +401,22 @@ export default function Component() {
                 handleSliderChange(
                   scenarioIdx,
                   "weighted_mean_cpi_6m",
-                  newValues[0]
-                );
-                handleSliderChange(
-                  scenarioIdx,
-                  "weighted_mean_cpi_12m",
                   newValues[1]
                 );
                 handleSliderChange(
                   scenarioIdx,
-                  "weighted_mean_cpi_18m",
+                  "weighted_mean_cpi_12m",
                   newValues[2]
                 );
                 handleSliderChange(
                   scenarioIdx,
-                  "weighted_mean_cpi_24m",
+                  "weighted_mean_cpi_18m",
                   newValues[3]
+                );
+                handleSliderChange(
+                  scenarioIdx,
+                  "weighted_mean_cpi_24m",
+                  newValues[4]
                 );
               }}
             />
@@ -457,18 +472,13 @@ export default function Component() {
           <div className="space-y-4">
             {events.map((event, index) => (
               <div key={index} className="p-4 border rounded-lg bg-muted">
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between ">
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg">{event.name}</h3>
                     <p className="text-sm text-muted-foreground">
                       {event.date}
                     </p>
                     <p className="mt-2">{event.content}</p>
-                  </div>
-                  <div className="ml-4">
-                    {/* <span className="text-sm text-muted-foreground">
-                      Relevance: {(event.relevance * 100).toFixed(1)}%
-                    </span> */}
                   </div>
                 </div>
               </div>
@@ -479,15 +489,14 @@ export default function Component() {
     );
   }
 
-  // console.log(parameterMap.get(0));
-
   return (
     <div className="container mx-auto p-4 bg-gray-50 min-h-screen">
       <Card className="mb-6 bg-white shadow-md">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-3xl font-bold text-primary">
             Economic Scenario Generator
           </CardTitle>
+          <Image src="/image.png" alt="UBS Logo" width={300} height={100} />
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -538,7 +547,6 @@ export default function Component() {
                             <div className="flex-shrink-0">
                               <BarChart3 className="h-4 w-4 mr-2" />
                             </div>
-
                             <div className="flex-1 min-w-0">
                               <div className="font-bold ">
                                 {scenario?.event}
